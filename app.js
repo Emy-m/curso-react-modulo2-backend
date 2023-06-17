@@ -2,6 +2,8 @@ const path = require("path");
 const fs = require("fs");
 const express = require("express");
 const app = express();
+const cors = require("cors");
+app.use(cors());
 const port = 3000;
 const multer = require("multer");
 
