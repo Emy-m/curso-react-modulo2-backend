@@ -3,9 +3,11 @@ const fs = require("fs");
 const express = require("express");
 const app = express();
 const cors = require("cors");
-app.use(cors());
 const port = 3000;
 const multer = require("multer");
+
+app.use(cors());
+app.use(express.json());
 
 const imagesFolder = path.join(__dirname, "images");
 const defaultImage = path.join(imagesFolder, "terminator.png");
@@ -83,15 +85,45 @@ app.get("/movies", (req, res) => {
 });
 
 app.get("/movies/:id", (req, res) => {
-  let movie = movies.find((m) => m.id === parseInt(req.params.id));
-  res.json(movie ? [movie] : []);
+  try {
+    let movie = movies.find((m) => m.id === parseInt(req.params.id));
+
+    if (movie) res.json([movie]);
+    else throw "Movie not found";
+  } catch (err) {
+    handleError(err, res);
+  }
 });
 
 app.use("/images", express.static(imagesFolder));
 
-app.post("/movies", upload.single("image"), (req, res) => {
-  const { title, genre, year } = req.body;
+app.post("/images", upload.single("image"), (req, res) => {
   const image = req.file;
+  if (!image) {
+    return res.status(400).json({ error: "Please provide a file to upload" });
+  }
+
+  /* Check image type and save */
+  if (path.extname(image.originalname).toLowerCase() === ".png") {
+    fs.rename(
+      image.path,
+      __dirname + "/images/" + image.originalname,
+      (err) => {
+        if (err) {
+          deleteImage(image.path);
+          throw err;
+        }
+      }
+    );
+  } else {
+    throw "Invalid image type";
+  }
+
+  res.status(200).json({ imageName: image.originalname });
+});
+
+app.post("/movies", (req, res) => {
+  const { title, genre, year, image } = req.body;
 
   try {
     /* Check movie props */
@@ -108,37 +140,44 @@ app.post("/movies", upload.single("image"), (req, res) => {
       throw "Please provide a image";
     }
 
-    /* Check image type and save */
-    if (path.extname(image.originalname).toLowerCase() === ".png") {
-      fs.rename(
-        image.path,
-        __dirname + "/images/" + image.originalname,
-        (err) => {
-          if (err) {
-            deleteImage(image.path);
-            throw err;
-          }
-        }
-      );
-    } else {
-      throw "Invalid image type";
-    }
-
     /* Add movie to array */
     movies.push({
       id: movies.length + 1,
       title: title,
       genre: genre,
       year: year,
-      image: image.originalname,
+      image: image,
     });
     res.status(200).contentType("application/json").json({
       message: "Movie uploaded successfully",
     });
   } catch (err) {
     if (image) {
-      deleteImage(image.path);
+      deleteImage(path.join(imagesFolder, image));
     }
+    handleError(err, res);
+  }
+});
+
+app.patch("/movies/:id", (req, res) => {
+  const { title, genre, year, image } = req.body;
+
+  try {
+    const movie = movies.find((m) => m.id === parseInt(req.params.id));
+    if (!movie) {
+      throw "Movie not found";
+    }
+
+    /* Update movie only if isn't undefined */
+    movie.title = title ? title : movie.title;
+    movie.genre = genre ? genre : movie.genre;
+    movie.year = year ? year : movie.year;
+    movie.image = image ? image : movie.image;
+
+    res.status(200).contentType("application/json").json({
+      message: "Movie updated successfully",
+    });
+  } catch (err) {
     handleError(err, res);
   }
 });
@@ -151,6 +190,7 @@ app.delete("/movies/:id", (req, res) => {
     }
 
     /* Delete image */
+    /* It does not consider if another movie uses this image */
     deleteImage(path.join(imagesFolder, movie.image));
 
     /* Delete movie */
