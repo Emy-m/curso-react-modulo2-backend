@@ -46,6 +46,8 @@ const movies = [
   },
 ];
 
+const genres = ["Action", "Comedy", "Drama", "Fantasy", "Horror", "Romance"];
+
 const handleError = (err, res) => {
   res.status(500).contentType("application/json").json({
     message: "Oops! Something went wrong!",
@@ -79,47 +81,27 @@ const upload = multer({
 });
 
 /* Methods */
+/* Movies */
 
 app.get("/movies", (req, res) => {
   res.json(movies);
 });
 
+app.get("/search/:filter", (req, res) => {
+  const filter = req.params.filter.toLowerCase();
+  const regExp = new RegExp(`\\b${filter}\\b`, "i");
+  const filteredMovies = movies.filter((movie) => regExp.test(movie.title));
+  res.json(filteredMovies);
+});
+
 app.get("/movies/:id", (req, res) => {
   try {
     let movie = movies.find((m) => m.id === parseInt(req.params.id));
-
     if (movie) res.json([movie]);
     else throw "Movie not found";
   } catch (err) {
     handleError(err, res);
   }
-});
-
-app.use("/images", express.static(imagesFolder));
-
-app.post("/images", upload.single("image"), (req, res) => {
-  const image = req.file;
-  if (!image) {
-    return res.status(400).json({ error: "Please provide a file to upload" });
-  }
-
-  /* Check image type and save */
-  if (path.extname(image.originalname).toLowerCase() === ".png") {
-    fs.rename(
-      image.path,
-      __dirname + "/images/" + image.originalname,
-      (err) => {
-        if (err) {
-          deleteImage(image.path);
-          throw err;
-        }
-      }
-    );
-  } else {
-    throw "Invalid image type";
-  }
-
-  res.status(200).json({ imageName: image.originalname });
 });
 
 app.post("/movies", (req, res) => {
@@ -130,7 +112,7 @@ app.post("/movies", (req, res) => {
     if (!title) {
       throw "Please provide title";
     }
-    if (!genre) {
+    if (!genre || !genres.includes(genre)) {
       throw "Please provide genre";
     }
     if (!year) {
@@ -167,6 +149,9 @@ app.patch("/movies/:id", (req, res) => {
     if (!movie) {
       throw "Movie not found";
     }
+    if (genre && !genres.includes(genre)) {
+      throw "Please provide a valid genre";
+    }
 
     /* Update movie only if isn't undefined */
     movie.title = title ? title : movie.title;
@@ -202,6 +187,43 @@ app.delete("/movies/:id", (req, res) => {
     handleError(err, res);
   }
 });
+
+/* Images */
+
+app.use("/images", express.static(imagesFolder));
+
+app.post("/images", upload.single("image"), (req, res) => {
+  const image = req.file;
+  if (!image) {
+    return res.status(400).json({ error: "Please provide a file to upload" });
+  }
+
+  /* Check image type and save */
+  if (path.extname(image.originalname).toLowerCase() === ".png") {
+    fs.rename(
+      image.path,
+      __dirname + "/images/" + image.originalname,
+      (err) => {
+        if (err) {
+          deleteImage(image.path);
+          throw err;
+        }
+      }
+    );
+  } else {
+    throw "Invalid image type";
+  }
+
+  res.status(200).json({ imageName: image.originalname });
+});
+
+/* Genres */
+
+app.get("/genres", (req, res) => {
+  res.json(genres);
+});
+
+/* Start server */
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
