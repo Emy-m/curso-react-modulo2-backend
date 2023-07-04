@@ -40,10 +40,20 @@ Esta es una aplicación para administrar una lista de películas, con la capacid
 
    - GET /movies: Obtiene una lista de todas las películas disponibles.
 
-   - GET /movies/:id: Obtiene los detalles de una película específica según su ID.
-   - POST /movies: Agrega una nueva película a la lista. Debes proporcionar los siguientes datos en el cuerpo de la solicitud:
+   - GET /movies/:id Obtiene los detalles de una película específica según su ID.
+   - POST /movies Agrega una nueva película a la lista. Debes proporcionar los siguientes datos en el cuerpo de la solicitud:
      - **title**: Título de la película.
      - **genre**: Género de la película.
      - **year**: Año de lanzamiento de la película.
-     - **image**: Archivo de imagen de la película (formato PNG solamente). La imagen debe enviarse en el campo **image** del formulario.
-   - DELETE /movies/:id: Elimina una película de la lista según su ID.
+     - **image**: Archivo de imagen de la película (formato PNG solamente).
+   - PATCH /movies Edita una película existente. Debes proporcionar los siguientes datos en el cuerpo de la solicitud:
+     - **id**: ID de la película a editar.
+     - **title**: Título de la película.
+     - **genre**: Género de la película.
+     - **year**: Año de lanzamiento de la película.
+     - **image**: Archivo de imagen de la película (formato PNG solamente).
+   - DELETE /movies/:id Elimina una película de la lista según su ID.
+   - GET /genres Obtiene una lista de todos los géneros disponibles.
+   - GET /images/:name Obtiene una imagen específica según su nombre.
+   - POST /images Agrega una nueva imagen a la lista. Debes proporcionar los siguientes datos en el cuerpo de la solicitud:
+     - **image**: Archivo de imagen (formato PNG solamente). La imagen debe enviarse en el campo **image** dentro de un formulario.
