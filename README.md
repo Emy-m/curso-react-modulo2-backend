@@ -13,7 +13,7 @@ Esta es una aplicación para administrar una lista de películas, con la capacid
 2. Navega al directorio del proyecto.
 
    ```shell
-    cd cursoreact-clase13-backend
+    cd curso-react-modulo2-backend
    ```
 
 3. Instala las dependencias requeridas.
