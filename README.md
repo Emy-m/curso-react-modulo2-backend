@@ -7,7 +7,7 @@ Esta es una aplicación para administrar una lista de películas, con la capacid
 1. Clona este repositorio en tu máquina local.
 
    ```shell
-    git clone https://gitlab.com/Emy_m/express-backend.git
+    git clone https://github.com/Emy-m/curso-react-modulo2-backend.git
    ```
 
 2. Navega al directorio del proyecto.
